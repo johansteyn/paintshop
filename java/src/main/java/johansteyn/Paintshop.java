@@ -99,7 +99,8 @@ public class Paintshop {
 	 * Finds the most optimal solution for the problem,
 	 * as per the requirements contained in the
 	 * <code>width</code> and <code>requirements</code> fields.
-	 * @return The solution string, which can <code>No solution</code>
+	 * @return The solution string, which can be <code>"No solution"</code> 
+	 * if no solution was found.
 	 */
 	public String solve() {
 		StringBuilder sb = new StringBuilder(width);
@@ -113,7 +114,7 @@ public class Paintshop {
 		}
 		solution = solution.replaceAll("G", "G ");
 		solution = solution.replaceAll("M", "M ");
-		return solution;
+		return solution.trim();
 	}
 
 	// Recursive method
