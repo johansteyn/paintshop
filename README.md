@@ -98,6 +98,31 @@ $ mvn clean site
 
 --------------------------------------------------------------------------------
 ### 4. Run
-TODO...
+For these examples, the built artifact was renamed to **paintshop.jar**.
+
+To show help/usage:
+```
+$ java -jar paintshop.jar -h
+Paint Shop Code Challenge - Johan Steyn
+
+Usage: java -jar paintshop.jar [-h] [-v] <file>
+
+Args:
+  -h Help (shows this usage text)
+  -v Verbose mode (shows the time taken)
+  <file> Input file
+```
+To solve a puzzle:
+```
+java -jar paintshop.jar test-5a.txt 
+G G G G M
+```
+To also show timing information:
+```
+$ java -jar paintshop.jar test-5b.txt -v
+G M G M G
+Time: 2 milliseconds
+```
+
 
 

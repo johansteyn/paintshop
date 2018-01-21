@@ -1,8 +1,7 @@
 package johansteyn;
 
 /**
- * An exception that can occur while parsing a Paint Shop input file,
- * due to incorrect file contents.
+ * An exception that can occur while parsing a Paint Shop input file due to incorrect file contents.
  */
 public class ParseException extends Exception {
 	/**

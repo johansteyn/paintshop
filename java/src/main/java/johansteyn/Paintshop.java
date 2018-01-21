@@ -7,16 +7,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-// TODO: IllegalArgumentException (ie. check all arguments)...
 /**
  * The Paint Shop Code Challenge
  * @see <a href="https://github.com/johansteyn/paintshop" target="_blank">Paint Shop on GitHub</a>
  */
 public class Paintshop {
-	private static int MAX_WIDTH = 64; // Not sure what to use here yet...
+private static long counter;
+	private static int MAX_WIDTH = Integer.MAX_VALUE;
 	private static boolean verbose;
 	private int width;
 	private List<String> requirements = new ArrayList<String>();
+	private String bestSolution;
 
 	/**
 	 * Parses the specified input file to capture the problem requirements. 
@@ -44,12 +45,19 @@ public class Paintshop {
 					continue;
 				}
 				if (width == 0) {
-					width = Integer.parseInt(line);
+					try {
+						width = Integer.parseInt(line);
+					} catch (NumberFormatException nfe) {
+						throw new ParseException("Invalid width: " + line);
+					}
 					if (width <= 0 || width > MAX_WIDTH) {
 						throw new ParseException("Width value must be between 1 and " + MAX_WIDTH);
 					}
 				} else {
 					String requirement = parseLine(line);
+					if (weight(requirement, 'M') > 1) {
+						throw new ParseException("Customer may not require more than one Matte: " + line);
+					}
 					if (!requirements.contains(requirement)) {
 						// Ignore duplicate requirements
 						requirements.add(requirement);
@@ -121,13 +129,30 @@ public class Paintshop {
 	// Returns the solution for the specified requirements and proposed solution
 	// If no solution is found, it will return null
 	private String solve(List<String> requirements, String solution) {
-		// Mask the proposed solution over all requirements, 
-		// to produce a new list of requirements
+		if (bestSolution != null && weight(solution, 'M') >= weight(bestSolution, 'M')) {
+			// Don't bother going down this rabbit hole - we already have a better solution!
+			return null;
+		}
+		// For every unsolved column that has no M requirements, set the solution to G
+		StringBuilder sb = new StringBuilder(solution);
+		for (int col = 0; col < width; col++) {
+			char c = solution.charAt(col);
+			if (c == '_') {
+				if (!hasMatte(requirements, col)) {
+					sb.setCharAt(col, 'G');
+				}
+			}
+		}
+		solution = sb.toString();
+		// Produce a new list of requirements that contains only
+		// requirements that are not met by the proposed solution,
+		// and that are masked by the proposed solution.
 		List<String> list = new ArrayList<String>();
 		for (String requirement : requirements) {
 			if (!satisfies(solution, requirement)) {
 				String r = mask(solution, requirement);
 				if (!list.contains(r)) {
+					// Ignore duplicate requirements
 					list.add(r);
 				}
 			}
@@ -140,7 +165,6 @@ public class Paintshop {
 			// We have a full proposed solution, but it doesn't meet all requirements...
 			return null;
 		}
-
 		// Any single requirement?
 		for (int row = 0; row < list.size(); row++) {
 			String requirement = list.get(row);
@@ -154,7 +178,6 @@ public class Paintshop {
 				}
 			}
 		}
-
 		// Remaining unsolved columns
 		List<String> solutions = new ArrayList<String>();
 		for (int col = 0; col < width; col++) {
@@ -174,24 +197,18 @@ public class Paintshop {
 			// No solution
 			return null;
 		}
-		// Return the solution with the fewest M's (not the most G's, as some may still be _)
-		int fewest = width;
-		String bestSolution = solutions.get(0);
+		// Return the solution with the fewest M's
+		solution = solutions.get(0);
 		for (int i = 1; i < solutions.size(); i++) {
 			String s = solutions.get(i);
-			int count = 0;
-			for (int j = 0; j < width; j++) {
-				char c = s.charAt(j);
-				if (c == 'M') {
-					count++;
-				}
-			}
-			if (count < fewest) {
-				fewest = count;
-				bestSolution = s;
+			if (weight(s, 'M') < weight(solution, 'M')) {
+				solution = s;
 			}
 		}
-		return bestSolution;
+		if (bestSolution == null || weight(solution, 'M') < weight(bestSolution, 'M')) {
+			bestSolution = solution;
+		}
+		return solution;
 	}
 
 	// Returns the number of G's + M's in a requirement
@@ -206,11 +223,34 @@ public class Paintshop {
 		return weight;
 	}
 
+	// Returns the number of specified character in a requirement
+	private int weight(String string, char character) {
+		int weight = 0;
+		for (int i = 0; i < string.length(); i++) {
+			char c = string.charAt(i);
+			if (c == character) {
+				weight++;
+			}
+		}
+		return weight;
+	}
+
+	// Returns true if any requirement has an M in the specified column
+	private boolean hasMatte(List<String> requirements, int col) {
+		for (String requirement : requirements) {
+			char c = requirement.charAt(col);
+			if (c == 'M') {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	// Returns string with character at specified
 	// index replaced by the specified character
 	private String replace(String string, int index, char c) {
 		StringBuilder sb = new StringBuilder(string);
-		sb.replace(index, index + 1, "" + c);
+		sb.setCharAt(index, c);
 		return sb.toString();
 	}
 
@@ -256,7 +296,6 @@ public class Paintshop {
 	 * Use the <code><b>-h</b></code> argument to show the <i>usage</i> text listing all arguments.
 	 */
 	public static void main(String[] args) {
-		long start = System.currentTimeMillis();
 		String filename = null;
 		for (int i = 0; i < args.length; i++) {
 			if (!args[i].startsWith("-")) {
@@ -292,10 +331,11 @@ public class Paintshop {
 			System.err.println("Error parsing input file: " + filename + "\n  " + pe.getMessage());
 			System.exit(3);
 		}
+		long start = System.currentTimeMillis();
 		String solution = paintshop.solve();
+		long end = System.currentTimeMillis();
 		System.out.println(solution);
 		if (verbose) {
-			long end = System.currentTimeMillis();
 			System.out.println("Time: " + (end - start) + " milliseconds");
 		}
 	}
@@ -312,3 +352,4 @@ public class Paintshop {
 		System.out.println("");
 	}
 }
+
