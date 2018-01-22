@@ -110,12 +110,13 @@ public class Paintshop {
 	 * if no solution was found.
 	 */
 	public String solve() {
+		bestSolution = null;
 		StringBuilder sb = new StringBuilder(width);
 		for (int i = 0; i < width; i++) {
 			sb.append('_');
 		}
 		String solution = sb.toString();
-		// Go down the rabbot hole with an empty proposed solution (ie. all underscores)
+		// Go down the rabbit hole with an empty proposed solution (ie. all underscores)
 		solution = solve(requirements, solution);
 		if (solution == null) {
 			return "No solution";
