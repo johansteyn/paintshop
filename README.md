@@ -5,9 +5,10 @@
 
 1. The Challenge
 2. Design
-3. Implementation
+3. Algorithm
+4. Implementation
 4. Build
-5. Run
+6. Run
 
 --------------------------------------------------------------------------------
 ### 1. The Challenge
@@ -85,7 +86,7 @@ There is no time limit, just show us your best ;-)
 --------------------------------------------------------------------------------
 ### 2. Design
 
-The solution consists of a single class, called Paintshop, whose constructor parses
+The solution consists of a single class, called `Paintshop`, whose constructor parses
 the specified input file to load the problem into a simple data representation:
 
   * The width, which represents the number of colours in the pallette.
@@ -105,7 +106,10 @@ Will be represented internally by:
 width: 5
 requirements: "M_G_G", "_GMG_", "____M"
 ```
-Where: G = Gloss, M = Matte and underscore (_), which means "not specified: (ie. can be either Gloss or Matte).
+Where: 
+  * G = Gloss
+  * M = Matte
+  * _ = Not specified (ie. can be either Gloss or Matte).
 
 One can visualize these requirements as a 2-dimensional matrix:
 ```
@@ -114,19 +118,29 @@ _GMG_
 ____M
 ```
 
-A single "solve" public method finds a solution to the problem (if any).
+A single `solve` public method finds a solution to the problem (if any).
 
 Solutions, like requirements, are represented by strings, where: 
-G = Gloss, M = Matte and underscore (_), which means "don't know" (ie. empty or blank).
+  * G = Gloss
+  * M = Matte
+  * _ = Don't know yet(ie. empty or blank, used for interim, proposed solutions).
 
-The core functionality resides in the private, recursive "solve" method,
+For example, the solution to the requirements above is:
+```
+GGGGM
+```
+
+--------------------------------------------------------------------------------
+### 3. Algorithm
+
+The core functionality resides in the private, recursive `solve` method,
 which takes 2 parameters:
 
   * A list of requirement strings (which can be different for each recursive call)
   * A proposed solution string
 
-The recursive "solve" method is th eproverbial "rabbit hole" which we venture into with 
-proposed solutions, and return from with either a solution or null.
+The recursive `solve` method is the proverbial "rabbit hole" down which we venture with 
+proposed solutions, and return from with either a valid solution or null.
 
 It takes a list of requirements and a proposed solution.
 The proposed solution can be either empty (all underscores), partial (some underscores) or full (no underscores).
@@ -141,45 +155,64 @@ The proposed solution either:
       * A column set for a single colour requirement, or
       * Any other column not yet set in the current proposed solution.
 
-If a solution is found AND it is better than the best solution so far then return it, else return null.
-#### Example:
-A walk-through for the example input file above will illustrate it further...
+If a solution is found by venturing further down the rabbit hole (ie. recursive call) AND it is better than the best solution so far then return it, else return null.
+#### Walk-through Example:
 ##### _First Call_
 The first call to the recursive "solve" method is made with requirements:
-`M_G_M`
-`_GMG_`
-`____M`
+```
+M_G_M
+_GMG_
+____M
+```
 And proposes an empty solution:
-`_____`
+```
+_____
+```
 Since positions 2 and 5 do not have any M's for any of the requirements, we know that the solution must contain a G in those positions, so we modify the solution accordingly:
-`_G_G_`
+```
+_G_G_
+```
 The (modified) proposed solution is applied to the requirements, yielding a new (hopefully, reduced) list of requirements from which all matched requirements are removed and "masked":
-`M_G_M`
-`____M`
+```
+M_G_M
+____M
+```
 Now we are ready to "go down the rabbit hole" with the new list of requirements and a new proposed solution, based on the current proposal but with one chosen column set to G or M. To choose a column, we first go for some "low hanging fruit" by looking for any requirement that has only one colour (ie. the second one above), resulting in modified porposal:
-`_G_GM`
+```
+_G_GM
+```
 #### Second call
 The second call is made with the reduced list of requirements:
-`M_G_M`
-`____M`
+```
+M_G_M
+____M
+```
 And the modified proposed solution:
-`_G_GM`
+```
+_G_GM
+```
 Noticing that position 3 of the requirements contains no M's, we modify the proposed solution further:
-`_GGGM`
+```
+_GGGM
+```
 And we apply it to the requirements, yielding an empty list of requirements (since it matches bot requirements), so we return that proposed solution, with underscores replaced by G's:
-`GGGGM`
+```
+GGGGM
+```
 
 This solution is then also returned from the first call up to the public "solve" method, to be printed to stdout as the final solution in the main method.
 
 --------------------------------------------------------------------------------
-### 3. Implementation
+### 4. Implementation
 
 The initial implementaion has been done in Java (JDK 1.8).
 
-I intend to port it to Scala...
+It does not depend on any 3rd party libraries at runtime, and requires only JUnit and build time.
+
+I intend to port it to Scala if time allows...
 
 --------------------------------------------------------------------------------
-### 4. Build
+### 5. Build
 
 To build the JAR artifact:
 ```
@@ -191,7 +224,7 @@ $ mvn clean site
 ```
 
 --------------------------------------------------------------------------------
-### 5. Run
+### 6. Run
 For these examples, the built artifact was renamed to **paintshop.jar**.
 
 To show help/usage:
@@ -217,6 +250,7 @@ $ java -jar paintshop.jar test-5b.txt -v
 G M G M G
 Time: 2 milliseconds
 ```
+
 
 
 
