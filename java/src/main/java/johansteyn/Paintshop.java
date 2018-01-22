@@ -157,18 +157,20 @@ public class Paintshop {
 				}
 			}
 		}
-		// Pick any unsolved column to send down the rabbit hole
+		// Pick any unsolved column to send down the rabbit hole with G and M to see which produces the best solution
 		int col = solution.indexOf('_');
-		// Try with G first...
-		String newSolution = solve(list, replace(solution, col, 'G'));
-		if (newSolution == null) {
-			// G did not result in a solution, so try M next...
-			newSolution = solve(list, replace(solution, col, 'M'));
+		String gSolution = solve(list, replace(solution, col, 'G'));
+		String mSolution = solve(list, replace(solution, col, 'M'));
+		if (gSolution != null && mSolution != null) {
+			// Both G and M have solutions, so choose the best one.
+			solution = weight(gSolution, 'M') < weight(mSolution, 'M') ? gSolution : mSolution;
+		} else {
+			solution = gSolution != null ? gSolution : mSolution;
 		}
-		if (bestSolution == null || weight(newSolution, 'M') < weight(bestSolution, 'M')) {
-			bestSolution = newSolution;
+		if (bestSolution == null || solution != null && weight(solution, 'M') < weight(bestSolution, 'M')) {
+			bestSolution = solution;
 		}
-		return newSolution;
+		return solution;
 	}
 
 	// Returns the number of G's + M's in a requirement
