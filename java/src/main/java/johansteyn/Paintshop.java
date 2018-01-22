@@ -12,7 +12,6 @@ import java.util.StringTokenizer;
  * @see <a href="https://github.com/johansteyn/paintshop" target="_blank">Paint Shop on GitHub</a>
  */
 public class Paintshop {
-private static long counter;
 	private static int MAX_WIDTH = Integer.MAX_VALUE;
 	private static boolean verbose;
 	private int width;
@@ -71,8 +70,8 @@ private static long counter;
 	}
 
 	// Returns a simpler representation of a requirement,
-	// where 'G' and 'M' are in their positions.
-	// and _ indicates unspecified (ie. doesn't matter).
+	// where 'G' and 'M' are in their positions and an
+	// underscore (_) indicates an "not specified"
 	// Eg: for width=5 and line "2 G 3 M 5G" it will return "_GM_G"
 	private String parseLine(String line) throws ParseException {
 		StringBuilder sb = new StringBuilder(width);
@@ -116,6 +115,7 @@ private static long counter;
 			sb.append('_');
 		}
 		String solution = sb.toString();
+		// Go down the rabbot hole with an empty proposed solution (ie. all underscores)
 		solution = solve(requirements, solution);
 		if (solution == null) {
 			return "No solution";
@@ -125,51 +125,30 @@ private static long counter;
 		return solution.trim();
 	}
 
-	// Recursive method
-	// Returns the solution for the specified requirements and proposed solution
-	// If no solution is found, it will return null
+	// The rabbit hole: a recursive method that takes a proposed solution
+	// for the list of requirements, and returns either a full solution
+	// or null (if no solution was found).
 	private String solve(List<String> requirements, String solution) {
 		if (bestSolution != null && weight(solution, 'M') >= weight(bestSolution, 'M')) {
 			// Don't bother going down this rabbit hole - we already have a better solution!
 			return null;
 		}
-		// For every unsolved column that has no M requirements, set the solution to G
-		StringBuilder sb = new StringBuilder(solution);
-		for (int col = 0; col < width; col++) {
-			char c = solution.charAt(col);
-			if (c == '_') {
-				if (!hasMatte(requirements, col)) {
-					sb.setCharAt(col, 'G');
-				}
-			}
-		}
-		solution = sb.toString();
-		// Produce a new list of requirements that contains only
-		// requirements that are not met by the proposed solution,
-		// and that are masked by the proposed solution.
-		List<String> list = new ArrayList<String>();
-		for (String requirement : requirements) {
-			if (!satisfies(solution, requirement)) {
-				String r = mask(solution, requirement);
-				if (!list.contains(r)) {
-					// Ignore duplicate requirements
-					list.add(r);
-				}
-			}
-		}
+		// Improve the proposed solution by filling it with G's where we can
+		solution = fillGloss(requirements, solution);
+		// Apply the proposed solution to yield a (hopefully reduced) list of requirements
+		List<String> list = applyAndMask(solution, requirements);
 		if (list.size() == 0) {
-			// All requirements have been met :)
+			// All requirements have been met!
 			return solution.replaceAll("_", "G");
 		}
 		if (solution.indexOf('_') < 0) {
-			// We have a full proposed solution, but it doesn't meet all requirements...
+			// We have a full proposed solution, but it doesn't meet all requirements, so it is not a solution.
 			return null;
 		}
-		// Any single requirement?
+		// If there is any requirement for a single colour, go down the rabbit whole with it.
 		for (int row = 0; row < list.size(); row++) {
 			String requirement = list.get(row);
 			if (weight(requirement) == 1) {
-				// This is a single requirement  
 				for (int col = 0; col < width; col++) {
 					char c = requirement.charAt(col);
 					if ((c == 'G' || c == 'M')) {
@@ -178,49 +157,23 @@ private static long counter;
 				}
 			}
 		}
-		// Remaining unsolved columns
-		List<String> solutions = new ArrayList<String>();
-		for (int col = 0; col < width; col++) {
-			char c = solution.charAt(col);
-			if (c == '_') {
-				String s = solve(list, replace(solution, col, 'G'));
-				if (s != null) {
-					solutions.add(s);
-				}
-				s = solve(list, replace(solution, col, 'M'));
-				if (s != null) {
-					solutions.add(s);
-				}
-			}
+		// Pick any unsolved column to send down the rabbit hole
+		int col = solution.indexOf('_');
+		// Try with G first...
+		String newSolution = solve(list, replace(solution, col, 'G'));
+		if (newSolution == null) {
+			// G did not result in a solution, so try M next...
+			newSolution = solve(list, replace(solution, col, 'M'));
 		}
-		if (solutions.size() <= 0) {
-			// No solution
-			return null;
+		if (bestSolution == null || weight(newSolution, 'M') < weight(bestSolution, 'M')) {
+			bestSolution = newSolution;
 		}
-		// Return the solution with the fewest M's
-		solution = solutions.get(0);
-		for (int i = 1; i < solutions.size(); i++) {
-			String s = solutions.get(i);
-			if (weight(s, 'M') < weight(solution, 'M')) {
-				solution = s;
-			}
-		}
-		if (bestSolution == null || weight(solution, 'M') < weight(bestSolution, 'M')) {
-			bestSolution = solution;
-		}
-		return solution;
+		return newSolution;
 	}
 
 	// Returns the number of G's + M's in a requirement
 	private int weight(String string) {
-		int weight = 0;
-		for (int i = 0; i < string.length(); i++) {
-			char c = string.charAt(i);
-			if (c == 'G' || c == 'M') {
-				weight++;
-			}
-		}
-		return weight;
+		return weight(string, 'G') + weight(string, 'M');
 	}
 
 	// Returns the number of specified character in a requirement
@@ -246,8 +199,21 @@ private static long counter;
 		return false;
 	}
 
-	// Returns string with character at specified
-	// index replaced by the specified character
+	// Returns a new solution with G's in every position that does not require M
+	private String fillGloss(List<String> requirements, String solution) {
+		StringBuilder sb = new StringBuilder(solution);
+		for (int col = 0; col < width; col++) {
+			char c = solution.charAt(col);
+			if (c == '_') {
+				if (!hasMatte(requirements, col)) {
+					sb.setCharAt(col, 'G');
+				}
+			}
+		}
+		return sb.toString();
+	}
+
+	// Returns string with character replaced at the specified index
 	private String replace(String string, int index, char c) {
 		StringBuilder sb = new StringBuilder(string);
 		sb.setCharAt(index, c);
@@ -255,8 +221,6 @@ private static long counter;
 	}
 
 	// Returns true if the solution satisfies the requirement.
-	// Checks if any G or M character in the solution matches
-	// the corresponding character in the requirement
 	private boolean satisfies(String solution, String requirement) {
 		for (int i = 0; i < solution.length(); i++) {
 			char c = solution.charAt(i);
@@ -267,14 +231,32 @@ private static long counter;
 		return false;
 	}
 
-	// Masks the specified solution over the requirement such that
-	// each solved position (G or M in the solution)
+	// Apply the proposed solution to the requirements,
+	// to yield a new list of requirements that contains
+	// requirements that are NOT met by the proposed solution,
+	// and that are "masked" by the proposed solution.
+	private List<String> applyAndMask(String solution, List<String> requirements) {
+		List<String> list = new ArrayList<String>();
+		for (String requirement : requirements) {
+			if (!satisfies(solution, requirement)) {
+				String r = mask(solution, requirement);
+				if (!list.contains(r)) {
+					// Ignore duplicate requirements
+					list.add(r);
+				}
+			}
+		}
+		return list;
+	}
+
+	// Returns a new requirement with the solution "masked" over it 
+	// so that each solved position (G or M in the solution)
 	// removes a requirement (_ in the corresponding position),
 	// while unsolved positions are left unchanged.
 	// Example:
-	//   GMG___  <= solution
+	//   GMM___  <= solution
 	//   __GM_G  <= requirement
-	//   ___M_G  <= returned
+	//   ___M_G  <= masked requirement
 	private String mask(String solution, String requirement) {
 		StringBuilder sb = new StringBuilder(width);
 		for (int i = 0; i < width; i++) {
