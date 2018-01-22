@@ -172,7 +172,7 @@ Since positions 2 and 5 do not have any M's for any of the requirements, we know
 ```
 _G_G_
 ```
-The (modified) proposed solution is applied to the requirements, yielding a new (hopefully, reduced) list of requirements from which all matched requirements are removed and "masked":
+The (modified) proposed solution is applied to the requirements, yielding a new (hopefully, reduced) list of requirements:
 ```
 M_G_M
 ____M
