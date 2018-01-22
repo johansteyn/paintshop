@@ -60,8 +60,14 @@ public class Paintshop {
 					if (!requirements.contains(requirement)) {
 						// Ignore duplicate requirements
 						requirements.add(requirement);
+						if (verbose) {
+							System.out.println(requirement);
+						}
 					}
 				}
+			}
+			if (verbose) {
+				System.out.println(emptySolution().replaceAll("_", "|"));
 			}
         } catch (IOException ioe) {
 			// Simply re-throw the exception - resources will close automatically
@@ -106,29 +112,17 @@ public class Paintshop {
 	 * Finds the most optimal solution for the problem,
 	 * as per the requirements contained in the
 	 * <code>width</code> and <code>requirements</code> fields.
-	 * @return The solution string, which can be <code>"No solution"</code> 
-	 * if no solution was found.
+	 * @return The solution string, or null if no solution was found.
 	 */
 	public String solve() {
 		bestSolution = null;
-		StringBuilder sb = new StringBuilder(width);
-		for (int i = 0; i < width; i++) {
-			sb.append('_');
-		}
-		String solution = sb.toString();
 		// Go down the rabbit hole with an empty proposed solution (ie. all underscores)
-		solution = solve(requirements, solution);
-		if (solution == null) {
-			return "No solution";
-		}
-		solution = solution.replaceAll("G", "G ");
-		solution = solution.replaceAll("M", "M ");
-		return solution.trim();
+		String solution = emptySolution();
+		return solve(requirements, solution);
 	}
 
-	// The rabbit hole: a recursive method that takes a proposed solution
-	// for the list of requirements, and returns either a full solution
-	// or null (if no solution was found).
+	// The rabbit hole: a recursive method that takes a proposed solution for
+	// the list of requirements, and returns either a full solution or null.
 	private String solve(List<String> requirements, String solution) {
 		if (bestSolution != null && weight(solution, 'M') >= weight(bestSolution, 'M')) {
 			// Don't bother going down this rabbit hole - we already have a better solution!
@@ -136,6 +130,9 @@ public class Paintshop {
 		}
 		// Improve the proposed solution by filling it with G's where we can
 		solution = fillGloss(requirements, solution);
+		if (verbose) {
+			System.out.println(solution);
+		}
 		// Apply the proposed solution to yield a (hopefully reduced) list of requirements
 		List<String> list = apply(solution, requirements);
 		if (list.size() == 0) {
@@ -158,20 +155,45 @@ public class Paintshop {
 				}
 			}
 		}
-		// Pick any unsolved column to send down the rabbit hole with G and M to see which produces the best solution
-		int col = solution.indexOf('_');
-		String gSolution = solve(list, replace(solution, col, 'G'));
-		String mSolution = solve(list, replace(solution, col, 'M'));
-		if (gSolution != null && mSolution != null) {
-			// Both G and M have solutions, so choose the best one.
-			solution = weight(gSolution, 'M') < weight(mSolution, 'M') ? gSolution : mSolution;
-		} else {
-			solution = gSolution != null ? gSolution : mSolution;
+		// Send remaining unsolved columns down the rabbit hole...
+		List<String> solutions = new ArrayList<String>();
+		for (int col = 0; col < width; col++) {
+			char c = solution.charAt(col);
+			if (c == '_') {
+				String s = solve(list, replace(solution, col, 'G'));
+				if (s != null) {
+					solutions.add(s);
+				}
+				s = solve(list, replace(solution, col, 'M'));
+				if (s != null) {
+					solutions.add(s);
+				}
+			}
 		}
-		if (bestSolution == null || solution != null && weight(solution, 'M') < weight(bestSolution, 'M')) {
+		if (solutions.size() <= 0) {
+			// No solution
+			return null;
+		}
+		// Return the solution with the fewest M's
+		solution = solutions.get(0);
+		for (int i = 1; i < solutions.size(); i++) {
+			String s = solutions.get(i);
+			if (weight(s, 'M') < weight(solution, 'M')) {
+				solution = s;
+			}
+		}
+		if (bestSolution == null || weight(solution, 'M') < weight(bestSolution, 'M')) {
 			bestSolution = solution;
 		}
 		return solution;
+	}
+
+	private String emptySolution() {
+		StringBuilder sb = new StringBuilder(width);
+		for (int i = 0; i < width; i++) {
+			sb.append('_');
+		}
+		return sb.toString();
 	}
 
 	// Returns the number of G's + M's in a requirement
@@ -230,6 +252,7 @@ public class Paintshop {
 		List<String> list = new ArrayList<String>();
 		for (String requirement : requirements) {
 			if (!satisfies(solution, requirement)) {
+				requirement = mask(solution, requirement);
 				if (!list.contains(requirement)) {
 					// Ignore duplicate requirements
 					list.add(requirement);
@@ -237,6 +260,27 @@ public class Paintshop {
 			}
 		}
 		return list;
+	}
+
+	// Returns a new requirement with the solution "masked" over it 
+	// so that each solved position (G or M in the solution)
+	// removes a requirement (_ in the corresponding position),
+	// while unsolved positions are left unchanged.
+	// Example:
+	//   GMM___  <= solution
+	//   __GM_G  <= requirement
+	//   ___M_G  <= masked requirement
+	private String mask(String solution, String requirement) {
+		StringBuilder sb = new StringBuilder(width);
+		for (int i = 0; i < width; i++) {
+			char c = solution.charAt(i);
+			if (c == 'G' || c == 'M') {
+				sb.append('_');
+			} else {
+				sb.append(requirement.charAt(i));
+			}
+		}
+		return sb.toString();
 	}
 
 	// Returns true if the solution satisfies the requirement.
@@ -296,10 +340,16 @@ public class Paintshop {
 		long start = System.currentTimeMillis();
 		String solution = paintshop.solve();
 		long end = System.currentTimeMillis();
-		System.out.println(solution);
 		if (verbose) {
-			System.out.println("Time: " + (end - start) + " milliseconds");
+			System.out.println("" + (end - start) + " milliseconds");
 		}
+		if (solution == null) {
+			System.out.println("No solution");
+			System.exit(1);
+		}
+		solution = solution.replaceAll("G", "G ");
+		solution = solution.replaceAll("M", "M ");
+		System.out.println(solution);
 	}
 
 	private static void usage() {
