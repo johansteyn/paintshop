@@ -136,7 +136,7 @@ public class Paintshop {
 		// Improve the proposed solution by filling it with G's where we can
 		solution = fillGloss(requirements, solution);
 		// Apply the proposed solution to yield a (hopefully reduced) list of requirements
-		List<String> list = applyAndMask(solution, requirements);
+		List<String> list = apply(solution, requirements);
 		if (list.size() == 0) {
 			// All requirements have been met!
 			return solution.replaceAll("_", "G");
@@ -188,17 +188,6 @@ public class Paintshop {
 		return weight;
 	}
 
-	// Returns true if any requirement has an M in the specified column
-	private boolean hasMatte(List<String> requirements, int col) {
-		for (String requirement : requirements) {
-			char c = requirement.charAt(col);
-			if (c == 'M') {
-				return true;
-			}
-		}
-		return false;
-	}
-
 	// Returns a new solution with G's in every position that does not require M
 	private String fillGloss(List<String> requirements, String solution) {
 		StringBuilder sb = new StringBuilder(solution);
@@ -213,11 +202,38 @@ public class Paintshop {
 		return sb.toString();
 	}
 
+	// Returns true if any requirement has an M in the specified column
+	private boolean hasMatte(List<String> requirements, int col) {
+		for (String requirement : requirements) {
+			char c = requirement.charAt(col);
+			if (c == 'M') {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	// Returns string with character replaced at the specified index
 	private String replace(String string, int index, char c) {
 		StringBuilder sb = new StringBuilder(string);
 		sb.setCharAt(index, c);
 		return sb.toString();
+	}
+
+	// Apply the proposed solution to the requirements,
+	// to yield a new list of requirements that contains
+	// only those that are met by the proposed solution.
+	private List<String> apply(String solution, List<String> requirements) {
+		List<String> list = new ArrayList<String>();
+		for (String requirement : requirements) {
+			if (!satisfies(solution, requirement)) {
+				if (!list.contains(requirement)) {
+					// Ignore duplicate requirements
+					list.add(requirement);
+				}
+			}
+		}
+		return list;
 	}
 
 	// Returns true if the solution satisfies the requirement.
@@ -229,45 +245,6 @@ public class Paintshop {
 			}
 		}
 		return false;
-	}
-
-	// Apply the proposed solution to the requirements,
-	// to yield a new list of requirements that contains
-	// requirements that are NOT met by the proposed solution,
-	// and that are "masked" by the proposed solution.
-	private List<String> applyAndMask(String solution, List<String> requirements) {
-		List<String> list = new ArrayList<String>();
-		for (String requirement : requirements) {
-			if (!satisfies(solution, requirement)) {
-				String r = mask(solution, requirement);
-				if (!list.contains(r)) {
-					// Ignore duplicate requirements
-					list.add(r);
-				}
-			}
-		}
-		return list;
-	}
-
-	// Returns a new requirement with the solution "masked" over it 
-	// so that each solved position (G or M in the solution)
-	// removes a requirement (_ in the corresponding position),
-	// while unsolved positions are left unchanged.
-	// Example:
-	//   GMM___  <= solution
-	//   __GM_G  <= requirement
-	//   ___M_G  <= masked requirement
-	private String mask(String solution, String requirement) {
-		StringBuilder sb = new StringBuilder(width);
-		for (int i = 0; i < width; i++) {
-			char c = solution.charAt(i);
-			if (c == 'G' || c == 'M') {
-				sb.append('_');
-			} else {
-				sb.append(requirement.charAt(i));
-			}
-		}
-		return sb.toString();
 	}
 
 	/**
