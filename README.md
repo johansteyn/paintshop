@@ -201,9 +201,9 @@ This solution is then also returned from the first call up to the public "solve"
 --------------------------------------------------------------------------------
 ### 4. Implementation
 
-The initial implementaion has been done in Java (JDK 1.8).
+The initial implementation has been done in Java (JDK 1.8).
 
-It requires JUnit as build time, but does not require any 3rd party libraries at runtime.
+It requires JUnit at build time, but does not require any 3rd party libraries at runtime.
 
 I intend to port it to Scala if time allows...
 
