@@ -13,7 +13,7 @@ import java.util.StringTokenizer;
  */
 public class Paintshop {
 	private static int MAX_WIDTH = Integer.MAX_VALUE;
-	private static boolean verbose;
+	private static int verbosity;
 	private int width;
 	private List<String> requirements = new ArrayList<String>();
 	private String bestSolution;
@@ -60,13 +60,13 @@ public class Paintshop {
 					if (!requirements.contains(requirement)) {
 						// Ignore duplicate requirements
 						requirements.add(requirement);
-						if (verbose) {
+						if (verbosity == 2) {
 							System.out.println(requirement);
 						}
 					}
 				}
 			}
-			if (verbose) {
+			if (verbosity == 2) {
 				System.out.println(emptySolution().replaceAll("_", "|"));
 			}
         } catch (IOException ioe) {
@@ -130,7 +130,7 @@ public class Paintshop {
 		}
 		// Improve the proposed solution by filling it with G's where we can
 		solution = fillGloss(requirements, solution);
-		if (verbose) {
+		if (verbosity == 2) {
 			System.out.println(solution);
 		}
 		// Apply the proposed solution to yield a (hopefully reduced) list of requirements
@@ -315,7 +315,9 @@ public class Paintshop {
 				usage();
 				System.exit(0);
 			} else if ("-v".equals(args[i])) {
-				verbose = true;
+				verbosity = 1;
+			} else if ("-vv".equals(args[i])) {
+				verbosity = 2;
 			} else {
 				usage();
 				System.err.println("Unknown option: " + args[i]);
@@ -340,7 +342,7 @@ public class Paintshop {
 		long start = System.currentTimeMillis();
 		String solution = paintshop.solve();
 		long end = System.currentTimeMillis();
-		if (verbose) {
+		if (verbosity >= 1) {
 			System.out.println("" + (end - start) + " milliseconds");
 		}
 		if (solution == null) {
@@ -355,11 +357,11 @@ public class Paintshop {
 	private static void usage() {
 		System.out.println("Paint Shop Code Challenge - Johan Steyn");
 		System.out.println("");
-		System.out.println("Usage: java -jar paintshop.jar [-h] [-v] <file>");
+		System.out.println("Usage: java -jar paintshop.jar [-h] [-v[v]] <file>");
 		System.out.println("");
 		System.out.println("Args:");
-		System.out.println("  -h Help (shows this usage text)");
-		System.out.println("  -v Verbose mode (shows the time taken)");
+		System.out.println("  -h     Help (shows this usage text)");
+		System.out.println("  -v[v]  Verbosity level (-v = show time taken, -vv = show loads more)");
 		System.out.println("  <file> Input file");
 		System.out.println("");
 	}
