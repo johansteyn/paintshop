@@ -204,7 +204,7 @@ This solution is then also returned from the first call up to the public "solve"
 
 The initial implementaion has been done in Java (JDK 1.8).
 
-It does not depend on any 3rd party libraries at runtime, and requires only JUnit and build time.
+It requires JUnit as build time, but does not require any 3rd party libraries at runtime.
 
 I intend to port it to Scala if time allows...
 
