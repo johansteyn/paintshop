@@ -86,8 +86,9 @@ There is no time limit, just show us your best ;-)
 --------------------------------------------------------------------------------
 ### 2. Design
 
-The design centers around a class called `Paintshop` with a public constructor, a public `solve` method, 
-and a static `main` method.
+The public [API](https://johansteyn.github.io/paintshop/java/javadoc/index.html)
+centers around a class called `Paintshop` with a public constructor, 
+a public `solve` method, and a static `main` method.
 
 The constructor parses the specified input file to load the problem into a simple data representation:
 
