@@ -112,20 +112,18 @@ List of requirement strings:
   _GMG_
   ____M
 ```
-Where: 
-  * G = Gloss
-  * M = Matte
-  * _ = Not specified (ie. can be either Gloss or Matte).
-
+An underscore (_) in a requirement string means that the colour is not required (ie. it can be either Gloss or Matte - it doesn't matter).
 
 A single `solve` public method finds a solution to the problem (if any).
 
-Solutions, like requirements, are represented by strings, where: 
-  * G = Gloss
-  * M = Matte
-  * _ = Don't know yet(ie. empty/blank, for proposing a solution).
+Solutions, like requirements, are represented by strings, except that an underscore (_) in a solution string means that the solution is *partial* (ie. it is not a *full* solution - it is an *interim* proposal - we still need to figure out some values).
 
-For example, the solution to the requirements above is:
+
+For example, a proposed partial solution for the above requirements could be:
+```
+_G__M
+```
+While the full, final solution would be:
 ```
 GGGGM
 ```
