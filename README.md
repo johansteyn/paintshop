@@ -228,12 +228,12 @@ To show help/usage:
 ```
 $ java -jar paintshop.jar -h
 Paint Shop Code Challenge - Johan Steyn
-
-Usage: java -jar paintshop.jar [-h] [-v] <file>
+  
+Usage: java -jar paintshop.jar [-h] [-v[v]] <file>
 
 Args:
-  -h Help (shows this usage text)
-  -v Verbose mode (shows the time taken)
+  -h     Help (shows this usage text)
+  -v[v]  Verbosity level (-v = show time taken, -vv = show loads more)
   <file> Input file
 ```
 To solve a puzzle:
@@ -241,11 +241,30 @@ To solve a puzzle:
 java -jar paintshop.jar test-5a.txt 
 G G G G M
 ```
-To also show timing information:
+To show time taken:
 ```
 $ java -jar paintshop.jar test-5b.txt -v
 G M G M G
 Time: 2 milliseconds
+```
+To show loads more information (handy for debugging):
+```
+$ java -jar paintshop.jar test-5b.txt -vv
+_M___
+____G
+G____
+G__MG
+__G__
+G_G_G
+G___G
+___M_
+___MG
+|||||
+G_G_G
+GMG_G
+GMGMG
+2 milliseconds
+G M G M G 
 ```
 
 
