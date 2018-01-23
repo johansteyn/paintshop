@@ -228,12 +228,12 @@ To show help/usage:
 ```
 $ java -jar paintshop.jar -h
 Paint Shop Code Challenge - Johan Steyn
-
-Usage: java -jar paintshop.jar [-h] [-v] <file>
+  
+Usage: java -jar paintshop.jar [-h] [-v[v]] <file>
 
 Args:
-  -h Help (shows this usage text)
-  -v Verbose mode (shows the time taken)
+  -h     Help (shows this usage text)
+  -v[v]  Verbosity level (-v = show time taken, -vv = show loads more)
   <file> Input file
 ```
 To solve a puzzle:
