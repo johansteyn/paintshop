@@ -86,16 +86,14 @@ There is no time limit, just show us your best ;-)
 --------------------------------------------------------------------------------
 ### 2. Design
 
-The public [API](https://johansteyn.github.io/paintshop/java/javadoc/index.html)
-centers around a class called `Paintshop` with a public constructor, 
-a public `solve` method, and a static `main` method.
+The [public API](https://johansteyn.github.io/paintshop/java/javadoc/index.html)
+centers around the `Paintshop` class with a public constructor, 
+a `solve` method, and a `main` method for standalone command line use.
 
-The constructor parses the specified input file to load the problem into a simple data representation:
+The constructor parses the specified input file to load the problem requirements into a simple internal data representation:
 
-  * The width, which represents the number of colours in the pallette.
-  * A list of requirement strings, one for each customer
-
-Individual requirements and solutions are represented internally by strings.
+  * Width, which represents the number of colours in the pallette.
+  * List of requirement strings, one for each customer
 
 For example, input file:
 ```
