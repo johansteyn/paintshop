@@ -86,8 +86,10 @@ There is no time limit, just show us your best ;-)
 --------------------------------------------------------------------------------
 ### 2. Design
 
-The solution consists of a single class, called `Paintshop`, whose constructor parses
-the specified input file to load the problem into a simple data representation:
+The design centers around a class called `Paintshop` with a public constructor, a public `solve` method, 
+and a static `main` method.
+
+The constructor parses the specified input file to load the problem into a simple data representation:
 
   * The width, which represents the number of colours in the pallette.
   * A list of requirement strings, one for each customer
@@ -101,29 +103,27 @@ For example, input file:
 2 G 3 M 4 G
 5 M
 ```
-Will be represented internally by:
+Is represented internally by:
 ```
-width: 5
-requirements: "M_G_G", "_GMG_", "____M"
+Numeric width: 
+  5
+List of requirement strings: 
+  M_G_G
+  _GMG_
+  ____M
 ```
 Where: 
   * G = Gloss
   * M = Matte
   * _ = Not specified (ie. can be either Gloss or Matte).
 
-One can visualize these requirements as a 2-dimensional matrix:
-```
-M_G_G
-_GMG_
-____M
-```
 
 A single `solve` public method finds a solution to the problem (if any).
 
 Solutions, like requirements, are represented by strings, where: 
   * G = Gloss
   * M = Matte
-  * _ = Don't know yet(ie. empty or blank, used for interim, proposed solutions).
+  * _ = Don't know yet(ie. empty/blank, for proposing a solution).
 
 For example, the solution to the requirements above is:
 ```
@@ -136,18 +136,16 @@ GGGGM
 The core functionality resides in the private, recursive `solve` method,
 which takes 2 parameters:
 
-  * A list of requirement strings (which can be different for each recursive call)
+  * A list of requirement strings
   * A proposed solution string
 
-The recursive `solve` method is the proverbial "rabbit hole" down which we venture with 
-proposed solutions, and return from with either a valid solution or null.
-
-It takes a list of requirements and a proposed solution.
 The proposed solution can be either empty (all underscores), partial (some underscores) or full (no underscores).
-The first call passes it the original requirements along with an empty proposed solution.
-Each subsequent (recursive) call will be made with a reduced list of requirements and a more complete proposed solution.
 
-The proposed solution either:
+The first call passes the original requirements along with an empty proposed solution.
+Each subsequent (recursive) call will be made with a reduced list of requirements and a more complete proposed solution.
+So, as we go deeper down the rabbit hole, the list of requirements will become smaller, while the proposed solution will become "fuller" (fewer blanks).
+
+A proposed solution either:
   * Cannot be a better solution that what we already found (return null), or
   * Satisfies all the requirements (return it), or
   * Is a full solution that does not satisfy all the requirements (return null)
@@ -155,7 +153,8 @@ The proposed solution either:
       * A column set for a single colour requirement, or
       * Any other column not yet set in the current proposed solution.
 
-If a solution is found by venturing further down the rabbit hole (ie. recursive call) AND it is better than the best solution so far then return it, else return null.
+Every time a full solution is found it is compared against the "best" solution found so far (ie. fewest M's), and if it is better  then it will be returned (as the new "best" solution), otherwise it will return null.
+
 #### Walk-through Example:
 ##### _First Call_
 The first call to the recursive "solve" method is made with requirements:
@@ -195,7 +194,7 @@ Noticing that position 3 of the requirements contains no M's, we modify the prop
 ```
 _GGGM
 ```
-And we apply it to the requirements, yielding an empty list of requirements (since it matches bot requirements), so we return that proposed solution, with underscores replaced by G's:
+And we apply it to the requirements, yielding an empty list of requirements (since it matches both requirements), so we return that proposed solution, with underscores replaced by G's:
 ```
 GGGGM
 ```
@@ -214,7 +213,7 @@ I intend to port it to Scala if time allows...
 --------------------------------------------------------------------------------
 ### 5. Build
 
-To build the JAR artifact:
+To compile, run unit tests and build the JAR artifact:
 ```
 $ mvn clean package
 ```
